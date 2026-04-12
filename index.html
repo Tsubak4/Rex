@@ -1,0 +1,773 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=yes"
+    />
+    <title>Le Rex Diner - Saisie des ventes</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Courier New", "VT323", "Fira Code", monospace;
+      }
+
+      body {
+        min-height: 100vh;
+        background: #010b12;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1.5rem;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url("assets/rex.png");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        opacity: 0.35;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      body::after {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image:
+          repeating-linear-gradient(
+            0deg,
+            rgba(0, 255, 200, 0.04) 0px,
+            rgba(0, 255, 200, 0.04) 2px,
+            transparent 2px,
+            transparent 8px
+          ),
+          repeating-linear-gradient(
+            90deg,
+            rgba(255, 50, 80, 0.04) 0px,
+            rgba(255, 50, 80, 0.04) 2px,
+            transparent 2px,
+            transparent 8px
+          );
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 700px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 2;
+      }
+
+      .rex-header {
+        background: rgba(1, 11, 18, 0.75);
+        backdrop-filter: blur(8px);
+        border-radius: 60px;
+        margin-bottom: 2.5rem;
+        padding: 0.8rem 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border: 1px solid #0ff3d5;
+        box-shadow:
+          0 0 20px rgba(0, 255, 210, 0.3),
+          inset 0 0 8px rgba(255, 51, 102, 0.2);
+      }
+
+      .logo-area {
+        flex: 1;
+        display: flex;
+        justify-content: flex-start;
+      }
+
+      .logo-img {
+        max-height: 70px;
+        width: auto;
+        filter: drop-shadow(0 0 5px #0ff3d5);
+        transition: 0.2s;
+      }
+
+      .logo-fallback {
+        font-size: 3rem;
+        text-shadow:
+          0 0 8px #0ff3d5,
+          0 0 12px #ff3366;
+        letter-spacing: 4px;
+      }
+
+      .title-area {
+        flex: 3;
+        text-align: center;
+      }
+
+      .title-area h1 {
+        font-size: 2.8rem;
+        font-weight: bold;
+        text-transform: uppercase;
+        background: linear-gradient(135deg, #0ff3d5, #ff3366);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        text-shadow: 0 0 5px rgba(0, 255, 200, 0.5);
+        letter-spacing: 4px;
+        animation: neonPulse 2.5s infinite alternate;
+      }
+
+      @keyframes neonPulse {
+        0% {
+          opacity: 0.95;
+          text-shadow: 0 0 2px #0ff3d5;
+        }
+        100% {
+          opacity: 1;
+          text-shadow:
+            0 0 12px #ff3366,
+            0 0 6px #0ff3d5;
+        }
+      }
+
+      .sub-header {
+        font-size: 0.8rem;
+        font-family: monospace;
+        color: #ffa0b5;
+        background: rgba(0, 0, 0, 0.5);
+        display: inline-block;
+        padding: 0.2rem 1rem;
+        border-radius: 40px;
+        margin-top: 6px;
+      }
+
+      .right-placeholder {
+        flex: 1;
+      }
+
+      .sale-panel {
+        background: rgba(2, 20, 30, 0.85);
+        backdrop-filter: blur(12px);
+        border: 2px solid #0ff3d5;
+        border-radius: 48px;
+        padding: 2rem 2rem 2.2rem;
+        box-shadow:
+          0 0 30px rgba(0, 255, 200, 0.4),
+          inset 0 0 15px rgba(255, 51, 102, 0.3);
+        transition: all 0.2s;
+      }
+
+      .section-title {
+        font-size: 2rem;
+        text-align: center;
+        margin-bottom: 2rem;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        color: #0ff3d5;
+        text-shadow:
+          0 0 8px #0ff3d5,
+          0 0 4px #ff3366;
+        border-bottom: 2px dashed #ff3366;
+        display: inline-block;
+        width: 100%;
+        padding-bottom: 12px;
+      }
+
+      .form-group {
+        margin-bottom: 1.6rem;
+      }
+
+      label {
+        display: block;
+        font-size: 1rem;
+        font-weight: bold;
+        margin-bottom: 8px;
+        color: #ffb7c5;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+      }
+
+      select,
+      input {
+        width: 100%;
+        background: #021824;
+        border: 2px solid #0ff3d5;
+        padding: 14px 18px;
+        font-size: 1.1rem;
+        color: #f0fcff;
+        border-radius: 60px;
+        outline: none;
+        transition: all 0.2s;
+        font-family: monospace;
+        font-weight: bold;
+      }
+
+      select:focus,
+      input:focus {
+        border-color: #ff3366;
+        box-shadow: 0 0 15px #ff3366;
+        background: #01121c;
+      }
+
+      button {
+        background: transparent;
+        border: 2px solid #0ff3d5;
+        padding: 14px 24px;
+        font-weight: bold;
+        font-size: 1.2rem;
+        border-radius: 60px;
+        color: #0ff3d5;
+        cursor: pointer;
+        transition: 0.2s;
+        width: 100%;
+        margin-top: 20px;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        font-family: monospace;
+      }
+
+      button:hover {
+        background: #0ff3d5;
+        color: #010b12;
+        box-shadow: 0 0 20px #0ff3d5;
+        border-color: #ff3366;
+        transform: scale(1.01);
+      }
+
+      .btn-reset {
+        border-color: #ff8a9f;
+        color: #ff8a9f;
+        margin-top: 12px;
+        background: rgba(0, 0, 0, 0.4);
+      }
+
+      .btn-reset:hover {
+        background: #ff3366;
+        color: #010101;
+        border-color: #0ff3d5;
+        box-shadow: 0 0 20px #ff3366;
+      }
+
+      .admin-button-wrapper {
+        margin-top: 1.5rem;
+        display: flex;
+        justify-content: center;
+      }
+
+      .admin-btn {
+        background: linear-gradient(135deg, #ff3366, #ff6680);
+        border: 2px solid #0ff3d5;
+        padding: 12px 32px;
+        font-weight: bold;
+        font-size: 1.1rem;
+        border-radius: 60px;
+        color: #010b12;
+        cursor: pointer;
+        transition: 0.3s;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-family: monospace;
+        width: auto;
+        min-width: 200px;
+        margin-top: 0;
+        box-shadow: 0 0 15px rgba(255, 51, 102, 0.4);
+      }
+
+      .admin-btn:hover {
+        transform: scale(1.02);
+        box-shadow: 0 0 25px #ff3366;
+        background: linear-gradient(135deg, #ff6680, #ff3366);
+        border-color: #0ff3d5;
+      }
+
+      .toast-msg {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #0ff3d5cc;
+        backdrop-filter: blur(12px);
+        color: #01161f;
+        padding: 12px 24px;
+        border-radius: 60px;
+        font-weight: bold;
+        font-family: monospace;
+        font-size: 1rem;
+        z-index: 999;
+        border-left: 6px solid #ff3366;
+        border-right: 6px solid #ff3366;
+        pointer-events: none;
+        transition: opacity 0.3s;
+        opacity: 0;
+      }
+
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(8px);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .modal-content {
+        background: rgba(2, 20, 30, 0.95);
+        border: 2px solid #0ff3d5;
+        border-radius: 48px;
+        padding: 2rem;
+        max-width: 550px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 0 40px rgba(0, 255, 200, 0.4);
+      }
+
+      .modal-content h3 {
+        color: #0ff3d5;
+        font-size: 1.8rem;
+        text-align: center;
+        margin-bottom: 1.5rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
+
+      .ventes-list-admin {
+        margin: 1rem 0;
+        max-height: 400px;
+        overflow-y: auto;
+      }
+
+      .vente-item-admin {
+        background: #021824;
+        margin-bottom: 12px;
+        padding: 12px;
+        border-radius: 20px;
+        border-left: 4px solid #ff3366;
+        font-size: 0.85rem;
+      }
+
+      .vente-item-admin strong {
+        color: #0ff3d5;
+      }
+
+      .modal-stats {
+        background: #01121c;
+        padding: 12px;
+        border-radius: 30px;
+        margin-bottom: 1rem;
+        text-align: center;
+        border: 1px solid #0ff3d5;
+      }
+
+      .modal-stats span {
+        color: #0ff3d5;
+        font-weight: bold;
+        font-size: 1rem;
+      }
+
+      .close-modal {
+        background: #ff3366;
+        border: none;
+        margin-top: 15px;
+        color: white;
+        width: 100%;
+      }
+
+      .close-modal:hover {
+        background: #ff6680;
+        box-shadow: 0 0 15px #ff3366;
+      }
+
+      .clear-all-btn {
+        background: transparent;
+        border-color: #ff3366;
+        color: #ff6680;
+        margin-top: 10px;
+      }
+
+      .clear-all-btn:hover {
+        background: #ff3366;
+        color: #010b12;
+      }
+
+      @media (max-width: 650px) {
+        .rex-header {
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 10px;
+          padding: 1rem;
+        }
+        .logo-area,
+        .title-area,
+        .right-placeholder {
+          flex: auto;
+          text-align: center;
+        }
+        .title-area h1 {
+          font-size: 1.8rem;
+        }
+        .logo-img {
+          max-height: 50px;
+        }
+        .sale-panel {
+          padding: 1.5rem;
+        }
+        .section-title {
+          font-size: 1.6rem;
+        }
+        .admin-btn {
+          padding: 10px 24px;
+          font-size: 0.9rem;
+          min-width: 160px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="rex-header">
+        <div class="logo-area">
+          <img
+            src="assets/logo.png"
+            alt="Rex Dinners Logo"
+            class="logo-img"
+            onerror="
+              this.onerror = null;
+              this.style.display = 'none';
+              this.nextSibling.style.display = 'flex';
+            "
+          />
+          <div class="logo-fallback" style="display: none; font-size: 2.5rem">
+            🍔⚡
+          </div>
+        </div>
+        <div class="title-area">
+          <h1>LE REX'S DINNERS</h1>
+          <div class="sub-header">✦ VINTAGE DINER ✦</div>
+        </div>
+        <div class="right-placeholder"></div>
+      </div>
+
+      <div class="sale-panel">
+        <div class="section-title">🍽️ NOUVELLE VENTE</div>
+
+        <div class="form-group">
+          <label>👨‍🍳 EMPLOYÉ</label>
+          <select id="employeeSelect">
+            <option value="Sophie">Sophie Martin</option>
+            <option value="Thomas">Thomas Bernard</option>
+            <option value="Julie">Julie Dubois</option>
+            <option value="Nicolas">Nicolas Lefevre</option>
+            <option value="Camille">Camille Rousseau</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>📋 MENU / PRODUIT</label>
+          <select id="productSelect">
+            <option value="burger_royal">🍔 Burger Royal Deluxe</option>
+            <option value="rex_dinner">🥩 Rex Dinner Steak Frites</option>
+            <option value="rex_salad">🥗 Salad' Rex (vintage)</option>
+            <option value="cheese_cake">🍰 Cheese Cake Flambé</option>
+            <option value="milkshake">🥤 Milkshake Néon Vanille</option>
+            <option value="onion_rings">🧅 Onion Rings Flamboyants</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>🔢 QUANTITÉ (unités)</label>
+          <input type="number" id="quantityInput" value="1" min="1" step="1" />
+        </div>
+
+        <div class="form-group">
+          <label>💰 PRIX UNITAIRE ($)</label>
+          <input type="number" id="unitPriceInput" step="0.01" value="0.00" />
+        </div>
+
+        <button id="addSaleBtn">➕ ENREGISTRER LA VENTE</button>
+        <button id="quickResetForm" class="btn-reset">⟳ RÉINITIALISER</button>
+      </div>
+
+      <div class="admin-button-wrapper">
+        <button id="adminBtn" class="admin-btn">👑 ADMIN</button>
+      </div>
+    </div>
+
+    <div id="toastMessage" class="toast-msg">✅ Vente enregistrée</div>
+
+    <div id="adminModal" class="modal">
+      <div class="modal-content">
+        <h3>📊 ESPACE ADMIN</h3>
+        <div id="adminStats" class="modal-stats">Chargement...</div>
+        <div id="adminSalesList" class="ventes-list-admin">
+          <div style="text-align: center; padding: 20px">Chargement...</div>
+        </div>
+        <button id="clearAllSalesBtn" class="clear-all-btn">
+          🗑️ SUPPRIMER TOUTES LES VENTES
+        </button>
+        <button id="closeModalBtn" class="close-modal">FERMER</button>
+      </div>
+    </div>
+
+    <script>
+      const productsCatalog = {
+        burger_royal: { name: "🍔 Burger Royal Deluxe", basePrice: 14.9 },
+        rex_dinner: { name: "🥩 Rex Dinner Steak Frites", basePrice: 19.5 },
+        rex_salad: { name: "🥗 Salad' Rex (vintage)", basePrice: 11.5 },
+        cheese_cake: { name: "🍰 Cheese Cake Flambé", basePrice: 7.9 },
+        milkshake: { name: "🥤 Milkshake Néon Vanille", basePrice: 6.9 },
+        onion_rings: { name: "🧅 Onion Rings Flamboyants", basePrice: 5.9 },
+      };
+
+      let sales = [];
+
+      function loadFromStorage() {
+        const stored = localStorage.getItem("rex_dinners_sales");
+        if (stored) {
+          try {
+            sales = JSON.parse(stored);
+            if (!Array.isArray(sales)) sales = [];
+          } catch (e) {
+            sales = [];
+          }
+        } else {
+          sales = [];
+          saveToStorage();
+        }
+      }
+
+      function saveToStorage() {
+        localStorage.setItem("rex_dinners_sales", JSON.stringify(sales));
+      }
+
+      function generateId() {
+        return Date.now() + "-" + Math.random().toString(36).substr(2, 8);
+      }
+
+      function showToast(message, isError = false) {
+        const toast = document.getElementById("toastMessage");
+        toast.textContent = message;
+        toast.style.backgroundColor = isError ? "#ff3366cc" : "#0ff3d5cc";
+        toast.style.color = "#01161f";
+        toast.style.opacity = "1";
+        setTimeout(() => {
+          toast.style.opacity = "0";
+        }, 2000);
+      }
+
+      function addSale(productId, quantity, unitPrice, employee) {
+        if (!productId || !productsCatalog[productId]) {
+          showToast("❌ Produit invalide", true);
+          return false;
+        }
+
+        const qty = parseInt(quantity);
+        if (isNaN(qty) || qty <= 0) {
+          showToast("❌ Quantité invalide (minimum 1)", true);
+          return false;
+        }
+
+        let price = parseFloat(unitPrice);
+        if (isNaN(price) || price <= 0) {
+          showToast("❌ Prix unitaire invalide (>0)", true);
+          return false;
+        }
+
+        price = Math.round(price * 100) / 100;
+        const total = Math.round(qty * price * 100) / 100;
+        const product = productsCatalog[productId];
+
+        const newSale = {
+          id: generateId(),
+          productId: productId,
+          productName: product.name,
+          quantity: qty,
+          unitPrice: price,
+          total: total,
+          employee: employee,
+          timestamp: Date.now(),
+        };
+        sales.unshift(newSale);
+        saveToStorage();
+
+        showToast(
+          `✅ ${employee} : ${product.name} x${qty} → ${total.toFixed(2)}€`,
+        );
+        return true;
+      }
+
+      function updateUnitPriceFromProduct() {
+        const select = document.getElementById("productSelect");
+        const selectedVal = select.value;
+        const basePrice = productsCatalog[selectedVal]?.basePrice || 0;
+        const unitPriceInput = document.getElementById("unitPriceInput");
+        unitPriceInput.value = basePrice.toFixed(2);
+      }
+
+      function resetFormFields() {
+        document.getElementById("productSelect").value = "burger_royal";
+        document.getElementById("quantityInput").value = "1";
+        updateUnitPriceFromProduct();
+        showToast("🔄 Champs réinitialisés", false);
+      }
+
+      function handleAddSale() {
+        const employeeSelect = document.getElementById("employeeSelect");
+        const employee = employeeSelect.value;
+
+        const productSelect = document.getElementById("productSelect");
+        const productId = productSelect.value;
+
+        const quantityInput = document.getElementById("quantityInput");
+        const quantity = quantityInput.value;
+
+        let unitPriceInputValue =
+          document.getElementById("unitPriceInput").value;
+        let unitPrice = parseFloat(unitPriceInputValue);
+        if (isNaN(unitPrice)) unitPrice = 0;
+
+        const success = addSale(productId, quantity, unitPrice, employee);
+        if (success) {
+          document.getElementById("quantityInput").value = "1";
+          updateUnitPriceFromProduct();
+        }
+      }
+
+      function computeStats() {
+        let totalRevenue = 0;
+        let totalSales = sales.length;
+        let totalUnits = 0;
+        for (let sale of sales) {
+          totalRevenue += sale.total;
+          totalUnits += sale.quantity;
+        }
+        totalRevenue = Math.round(totalRevenue * 100) / 100;
+        return { totalRevenue, totalSales, totalUnits };
+      }
+
+      function renderAdminModal() {
+        const stats = computeStats();
+        const statsDiv = document.getElementById("adminStats");
+        if (statsDiv) {
+          statsDiv.innerHTML = `
+                    <span>💰 CA TOTAL : ${stats.totalRevenue.toFixed(2)} €</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+                    <span>🧾 VENTES : ${stats.totalSales}</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+                    <span>📦 UNITÉS : ${stats.totalUnits}</span>
+                `;
+        }
+
+        const adminList = document.getElementById("adminSalesList");
+        if (!adminList) return;
+
+        if (sales.length === 0) {
+          adminList.innerHTML = `<div style="text-align: center; padding: 20px; opacity:0.7;">✨ Aucune vente enregistrée ✨</div>`;
+          return;
+        }
+
+        let html = "";
+        for (let sale of sales) {
+          const dateObj = new Date(sale.timestamp);
+          const formattedDate = `${dateObj.toLocaleDateString()} ${dateObj.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+          html += `
+                    <div class="vente-item-admin">
+                        <div><strong>👤 ${sale.employee}</strong> - ${sale.productName}</div>
+                        <div>📦 ${sale.quantity} x ${sale.unitPrice.toFixed(2)}€ = <strong style="color:#0ff3d5;">${sale.total.toFixed(2)}€</strong></div>
+                        <div style="font-size:0.7rem; color:#7fcdff;">🕒 ${formattedDate}</div>
+                    </div>
+                `;
+        }
+        adminList.innerHTML = html;
+      }
+
+      function openAdminModal() {
+        renderAdminModal();
+        document.getElementById("adminModal").style.display = "flex";
+      }
+
+      function closeAdminModal() {
+        document.getElementById("adminModal").style.display = "none";
+      }
+
+      function clearAllSales() {
+        if (
+          confirm(
+            "⚠️ SUPPRESSION TOTALE ⚠️\n\nVoulez-vous vraiment supprimer TOUTES les ventes ?\nCette action est irréversible.",
+          )
+        ) {
+          sales = [];
+          saveToStorage();
+          showToast("🗑️ Toutes les ventes ont été supprimées", false);
+          if (document.getElementById("adminModal").style.display === "flex") {
+            renderAdminModal();
+          }
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        loadFromStorage();
+
+        const productSelect = document.getElementById("productSelect");
+        const addBtn = document.getElementById("addSaleBtn");
+        const resetFormBtn = document.getElementById("quickResetForm");
+        const adminBtn = document.getElementById("adminBtn");
+        const closeModalBtn = document.getElementById("closeModalBtn");
+        const clearAllBtn = document.getElementById("clearAllSalesBtn");
+
+        productSelect.addEventListener("change", () => {
+          updateUnitPriceFromProduct();
+        });
+
+        addBtn.addEventListener("click", handleAddSale);
+        resetFormBtn.addEventListener("click", resetFormFields);
+
+        adminBtn.addEventListener("click", openAdminModal);
+        closeModalBtn.addEventListener("click", closeAdminModal);
+        clearAllBtn.addEventListener("click", clearAllSales);
+
+        window.addEventListener("click", (e) => {
+          const modal = document.getElementById("adminModal");
+          if (e.target === modal) {
+            closeAdminModal();
+          }
+        });
+
+        updateUnitPriceFromProduct();
+
+        const qtyInput = document.getElementById("quantityInput");
+        const priceInput = document.getElementById("unitPriceInput");
+        const addOnEnter = (e) => {
+          if (e.key === "Enter") handleAddSale();
+        };
+        qtyInput.addEventListener("keypress", addOnEnter);
+        priceInput.addEventListener("keypress", addOnEnter);
+        productSelect.addEventListener("keypress", (e) => {
+          if (e.key === "Enter") handleAddSale();
+        });
+
+        const employeeSelect = document.getElementById("employeeSelect");
+        employeeSelect.addEventListener("keypress", (e) => {
+          if (e.key === "Enter") handleAddSale();
+        });
+      });
+    </script>
+  </body>
+</html>
