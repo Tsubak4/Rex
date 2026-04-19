@@ -2,44 +2,49 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, user-scalable=yes"
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rex's Diner - FlashFA</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800&family=Roboto:wght@300;400;500;700&display=swap"
+      rel="stylesheet"
     />
-    <title>Le Rex Diner - Saisie des ventes</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <style>
       * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
-        font-family: "Courier New", "VT323", "Fira Code", monospace;
+      }
+
+      :root {
+        --marine-deep: #0a0a0a;
+        --marine-medium: #1a1a2e;
+        --marine-light: #16213e;
+        --neon-cyan: #00ffff;
+        --neon-red: #ff0055;
+        --neon-red-light: #ff3366;
+        --white: #ffffff;
+        --dark-bg: #0a0a0a;
       }
 
       body {
+        font-family: "Roboto", sans-serif;
         min-height: 100vh;
-        background: #010b12;
-        position: relative;
         display: flex;
         flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 2rem 1.5rem;
-      }
-
-      body::before {
-        content: "";
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-image: url("assets/rex.png");
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        opacity: 0.35;
-        pointer-events: none;
-        z-index: 0;
+        background: url("assets/rex.png") center/cover fixed no-repeat;
+        color: #fff;
+        position: relative;
+        overflow-x: hidden;
+        border: 3px solid var(--neon-cyan);
+        box-shadow:
+          0 0 20px var(--neon-cyan),
+          inset 0 0 20px var(--neon-cyan);
       }
 
       body::after {
@@ -49,724 +54,977 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background-image:
-          repeating-linear-gradient(
-            0deg,
-            rgba(0, 255, 200, 0.04) 0px,
-            rgba(0, 255, 200, 0.04) 2px,
-            transparent 2px,
-            transparent 8px
-          ),
-          repeating-linear-gradient(
-            90deg,
-            rgba(255, 50, 80, 0.04) 0px,
-            rgba(255, 50, 80, 0.04) 2px,
-            transparent 2px,
-            transparent 8px
-          );
+        background: rgba(0, 0, 0, 0.65);
         pointer-events: none;
         z-index: 0;
       }
 
-      .container {
-        width: 100%;
-        max-width: 700px;
-        margin: 0 auto;
-        position: relative;
-        z-index: 2;
-      }
-
-      .rex-header {
-        background: rgba(1, 11, 18, 0.75);
-        backdrop-filter: blur(8px);
-        border-radius: 60px;
-        margin-bottom: 2.5rem;
-        padding: 0.8rem 2rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        border: 1px solid #0ff3d5;
-        box-shadow:
-          0 0 20px rgba(0, 255, 210, 0.3),
-          inset 0 0 8px rgba(255, 51, 102, 0.2);
-      }
-
-      .logo-area {
-        flex: 1;
-        display: flex;
-        justify-content: flex-start;
-      }
-
-      .logo-img {
-        max-height: 70px;
-        width: auto;
-        filter: drop-shadow(0 0 5px #0ff3d5);
-        transition: 0.2s;
-      }
-
-      .logo-fallback {
-        font-size: 3rem;
-        text-shadow:
-          0 0 8px #0ff3d5,
-          0 0 12px #ff3366;
-        letter-spacing: 4px;
-      }
-
-      .title-area {
-        flex: 3;
-        text-align: center;
-      }
-
-      .title-area h1 {
-        font-size: 2.8rem;
-        font-weight: bold;
-        text-transform: uppercase;
-        background: linear-gradient(135deg, #0ff3d5, #ff3366);
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
-        text-shadow: 0 0 5px rgba(0, 255, 200, 0.5);
-        letter-spacing: 4px;
-        animation: neonPulse 2.5s infinite alternate;
-      }
-
-      @keyframes neonPulse {
-        0% {
-          opacity: 0.95;
-          text-shadow: 0 0 2px #0ff3d5;
-        }
-        100% {
-          opacity: 1;
-          text-shadow:
-            0 0 12px #ff3366,
-            0 0 6px #0ff3d5;
-        }
-      }
-
-      .sub-header {
-        font-size: 0.8rem;
-        font-family: monospace;
-        color: #ffa0b5;
-        background: rgba(0, 0, 0, 0.5);
-        display: inline-block;
-        padding: 0.2rem 1rem;
-        border-radius: 40px;
-        margin-top: 6px;
-      }
-
-      .right-placeholder {
-        flex: 1;
-      }
-
-      .sale-panel {
-        background: rgba(2, 20, 30, 0.85);
-        backdrop-filter: blur(12px);
-        border: 2px solid #0ff3d5;
-        border-radius: 48px;
-        padding: 2rem 2rem 2.2rem;
-        box-shadow:
-          0 0 30px rgba(0, 255, 200, 0.4),
-          inset 0 0 15px rgba(255, 51, 102, 0.3);
-        transition: all 0.2s;
-      }
-
-      .section-title {
-        font-size: 2rem;
-        text-align: center;
-        margin-bottom: 2rem;
-        font-weight: bold;
-        text-transform: uppercase;
-        letter-spacing: 3px;
-        color: #0ff3d5;
-        text-shadow:
-          0 0 8px #0ff3d5,
-          0 0 4px #ff3366;
-        border-bottom: 2px dashed #ff3366;
-        display: inline-block;
-        width: 100%;
-        padding-bottom: 12px;
-      }
-
-      .form-group {
-        margin-bottom: 1.6rem;
-      }
-
-      label {
-        display: block;
-        font-size: 1rem;
-        font-weight: bold;
-        margin-bottom: 8px;
-        color: #ffb7c5;
-        letter-spacing: 1.5px;
-        text-transform: uppercase;
-      }
-
-      select,
-      input {
-        width: 100%;
-        background: #021824;
-        border: 2px solid #0ff3d5;
-        padding: 14px 18px;
-        font-size: 1.1rem;
-        color: #f0fcff;
-        border-radius: 60px;
-        outline: none;
-        transition: all 0.2s;
-        font-family: monospace;
-        font-weight: bold;
-      }
-
-      select:focus,
-      input:focus {
-        border-color: #ff3366;
-        box-shadow: 0 0 15px #ff3366;
-        background: #01121c;
-      }
-
-      button {
-        background: transparent;
-        border: 2px solid #0ff3d5;
-        padding: 14px 24px;
-        font-weight: bold;
-        font-size: 1.2rem;
-        border-radius: 60px;
-        color: #0ff3d5;
-        cursor: pointer;
-        transition: 0.2s;
-        width: 100%;
-        margin-top: 20px;
-        text-transform: uppercase;
-        letter-spacing: 3px;
-        font-family: monospace;
-      }
-
-      button:hover {
-        background: #0ff3d5;
-        color: #010b12;
-        box-shadow: 0 0 20px #0ff3d5;
-        border-color: #ff3366;
-        transform: scale(1.01);
-      }
-
-      .btn-reset {
-        border-color: #ff8a9f;
-        color: #ff8a9f;
-        margin-top: 12px;
-        background: rgba(0, 0, 0, 0.4);
-      }
-
-      .btn-reset:hover {
-        background: #ff3366;
-        color: #010101;
-        border-color: #0ff3d5;
-        box-shadow: 0 0 20px #ff3366;
-      }
-
-      .admin-button-wrapper {
-        margin-top: 1.5rem;
-        display: flex;
-        justify-content: center;
-      }
-
-      .admin-btn {
-        background: linear-gradient(135deg, #ff3366, #ff6680);
-        border: 2px solid #0ff3d5;
-        padding: 12px 32px;
-        font-weight: bold;
-        font-size: 1.1rem;
-        border-radius: 60px;
-        color: #010b12;
-        cursor: pointer;
-        transition: 0.3s;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        font-family: monospace;
-        width: auto;
-        min-width: 200px;
-        margin-top: 0;
-        box-shadow: 0 0 15px rgba(255, 51, 102, 0.4);
-      }
-
-      .admin-btn:hover {
-        transform: scale(1.02);
-        box-shadow: 0 0 25px #ff3366;
-        background: linear-gradient(135deg, #ff6680, #ff3366);
-        border-color: #0ff3d5;
-      }
-
-      .toast-msg {
-        position: fixed;
-        bottom: 30px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: #0ff3d5cc;
-        backdrop-filter: blur(12px);
-        color: #01161f;
-        padding: 12px 24px;
-        border-radius: 60px;
-        font-weight: bold;
-        font-family: monospace;
-        font-size: 1rem;
-        z-index: 999;
-        border-left: 6px solid #ff3366;
-        border-right: 6px solid #ff3366;
-        pointer-events: none;
-        transition: opacity 0.3s;
-        opacity: 0;
-      }
-
-      .modal {
-        display: none;
+      body::before {
+        content: "";
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.85);
-        backdrop-filter: blur(8px);
-        z-index: 1000;
-        justify-content: center;
+        background-image:
+          linear-gradient(rgba(0, 255, 255, 0.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 0, 85, 0.05) 1px, transparent 1px);
+        background-size: 40px 40px;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .neon-particles {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .particle {
+        position: absolute;
+        background: radial-gradient(circle, var(--neon-cyan), transparent);
+        border-radius: 50%;
+        animation: floatParticle 8s infinite ease-in-out;
+        opacity: 0.3;
+      }
+
+      @keyframes floatParticle {
+        0%,
+        100% {
+          transform: translateY(0) translateX(0);
+          opacity: 0.1;
+        }
+        50% {
+          transform: translateY(-100px) translateX(50px);
+          opacity: 0.5;
+        }
+      }
+
+      nav {
+        background: rgba(10, 10, 10, 0.85);
+        backdrop-filter: blur(10px);
+        border-bottom: 3px solid var(--neon-cyan);
+        box-shadow: 0 5px 25px var(--neon-cyan);
+        padding: 1rem 2rem;
+        position: fixed;
+        width: 100%;
+        z-index: 100;
+      }
+
+      .nav-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
         align-items: center;
       }
 
-      .modal-content {
-        background: rgba(2, 20, 30, 0.95);
-        border: 2px solid #0ff3d5;
-        border-radius: 48px;
-        padding: 2rem;
-        max-width: 550px;
-        width: 90%;
-        max-height: 80vh;
-        overflow-y: auto;
-        box-shadow: 0 0 40px rgba(0, 255, 200, 0.4);
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        animation: neonPulse 2s infinite ease-in-out;
       }
 
-      .modal-content h3 {
-        color: #0ff3d5;
-        font-size: 1.8rem;
+      .logo img {
+        height: 50px;
+        width: auto;
+        filter: drop-shadow(0 0 10px var(--neon-cyan));
+        transition: all 0.3s ease;
+      }
+
+      .logo img:hover {
+        filter: drop-shadow(0 0 20px var(--neon-cyan));
+        transform: scale(1.05);
+      }
+
+      @keyframes neonPulse {
+        0%,
+        100% {
+          filter: drop-shadow(0 0 5px var(--neon-cyan));
+        }
+        50% {
+          filter: drop-shadow(0 0 20px var(--neon-cyan));
+        }
+      }
+
+      .logo-text {
+        font-size: 2rem;
+        font-weight: 800;
+        font-family: "Orbitron", sans-serif;
+        background: linear-gradient(
+          to bottom,
+          var(--neon-cyan) 0%,
+          var(--neon-red) 100%
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: 2px;
+        position: relative;
+      }
+
+      .logo-text::after {
+        content: "";
+        position: absolute;
+        bottom: -5px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--neon-cyan),
+          var(--neon-red),
+          transparent
+        );
+        box-shadow: 0 0 20px var(--neon-cyan);
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 2rem;
+        list-style: none;
+      }
+
+      .nav-links a {
+        color: #fff;
+        text-decoration: none;
+        font-weight: 500;
+        padding: 0.5rem 1rem;
+        border-radius: 30px;
+        transition: all 0.3s ease;
+        position: relative;
+        text-shadow: 0 0 10px var(--neon-cyan);
+      }
+
+      .nav-links a::before {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 2px;
+        background: var(--neon-red);
+        box-shadow: 0 0 20px var(--neon-red);
+        transition: width 0.3s ease;
+      }
+
+      .nav-links a:hover::before {
+        width: 70%;
+      }
+
+      .nav-links a:hover {
+        text-shadow:
+          0 0 20px var(--neon-cyan),
+          0 0 40px var(--neon-red);
+      }
+
+      main {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 6rem 2rem 4rem;
+        position: relative;
+        z-index: 10;
+      }
+
+      .hero {
         text-align: center;
+        max-width: 1200px;
+        margin: 0 auto;
+        border: 2px solid var(--neon-cyan);
+        border-radius: 50px;
+        padding: 3rem;
+        box-shadow:
+          0 0 50px var(--neon-cyan),
+          inset 0 0 30px rgba(0, 255, 255, 0.3);
+        backdrop-filter: blur(5px);
+        background: rgba(0, 0, 0, 0.6);
+      }
+
+      .hero h1 {
+        font-family: "Orbitron", sans-serif;
+        font-size: clamp(3rem, 8vw, 6rem);
+        font-weight: 800;
         margin-bottom: 1.5rem;
         text-transform: uppercase;
-        letter-spacing: 2px;
+        letter-spacing: 4px;
+        animation: fadeInUp 1s ease;
+        background: linear-gradient(
+          to bottom,
+          var(--neon-cyan) 0%,
+          var(--neon-red) 100%
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        position: relative;
+        text-shadow: none;
       }
 
-      .ventes-list-admin {
-        margin: 1rem 0;
-        max-height: 400px;
-        overflow-y: auto;
+      .hero h1::before {
+        content: "🍔";
+        position: absolute;
+        left: -60px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 4rem;
+        opacity: 0.7;
+        animation: swing 4s infinite ease-in-out;
+        text-shadow: 0 0 30px var(--neon-red);
       }
 
-      .vente-item-admin {
-        background: #021824;
-        margin-bottom: 12px;
-        padding: 12px;
+      .hero h1::after {
+        content: "🍟";
+        position: absolute;
+        right: -60px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 4rem;
+        opacity: 0.7;
+        animation: swing 4s infinite ease-in-out reverse;
+        text-shadow: 0 0 30px var(--neon-cyan);
+      }
+
+      .hero p {
+        font-size: 1.3rem;
+        color: rgba(255, 255, 255, 0.9);
+        margin-bottom: 3rem;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+        line-height: 1.8;
+        animation: fadeInUp 1s ease 0.2s both;
+        text-shadow: 0 2px 10px rgba(0, 255, 255, 0.3);
+        backdrop-filter: blur(5px);
+        padding: 1.5rem;
         border-radius: 20px;
-        border-left: 4px solid #ff3366;
-        font-size: 0.85rem;
+        background: rgba(0, 255, 255, 0.1);
+        border: 1px solid var(--neon-cyan);
+        box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
       }
 
-      .vente-item-admin strong {
-        color: #0ff3d5;
+      .btn-connexion {
+        position: relative;
+        padding: 1.2rem 3.5rem;
+        font-size: 1.3rem;
+        font-weight: 600;
+        font-family: "Orbitron", sans-serif;
+        color: #0a0a0a;
+        background: linear-gradient(135deg, var(--neon-cyan), var(--neon-red));
+        border: none;
+        border-radius: 50px;
+        cursor: pointer;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow:
+          0 10px 40px var(--neon-cyan),
+          0 0 0 2px var(--neon-cyan) inset;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        animation: fadeInUp 1s ease 0.3s both;
       }
 
-      .modal-stats {
-        background: #01121c;
-        padding: 12px;
-        border-radius: 30px;
-        margin-bottom: 1rem;
+      .btn-connexion::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.4),
+          transparent
+        );
+        transition: left 0.5s ease;
+      }
+
+      .btn-connexion:hover {
+        transform: translateY(-5px) scale(1.05);
+        box-shadow:
+          0 20px 50px var(--neon-red),
+          0 0 0 4px #ffffff inset;
+      }
+
+      .btn-connexion:hover::before {
+        left: 100%;
+      }
+
+      .btn-connexion:active {
+        transform: translateY(0) scale(0.95);
+      }
+
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.9);
+        backdrop-filter: blur(8px);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        animation: fadeIn 0.3s ease;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .modal-container {
+        position: relative;
+        z-index: 1001;
+        width: 100%;
+        max-width: 400px;
+        padding: 30px;
+        background: linear-gradient(135deg, #0a0a0a, #1a1a2e);
+        border: 3px solid var(--neon-cyan);
+        border-radius: 15px;
+        box-shadow:
+          0 20px 40px rgba(0, 0, 0, 0.7),
+          0 0 30px var(--neon-cyan);
+        transform: scale(0.9);
+        animation: modalAppear 0.3s ease forwards;
+      }
+
+      @keyframes modalAppear {
+        from {
+          transform: scale(0.9);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+
+      .modal-title {
+        font-family: "Orbitron", sans-serif;
+        font-size: 2rem;
+        color: #fff;
+        margin-bottom: 30px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
         text-align: center;
-        border: 1px solid #0ff3d5;
+        background: linear-gradient(
+          to bottom,
+          var(--neon-cyan) 0%,
+          var(--neon-red) 100%
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        position: relative;
       }
 
-      .modal-stats span {
-        color: #0ff3d5;
-        font-weight: bold;
-        font-size: 1rem;
+      .modal-title::after {
+        content: "";
+        position: absolute;
+        bottom: -15px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 50%;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--neon-cyan),
+          var(--neon-red),
+          transparent
+        );
+        border-radius: 2px;
+        box-shadow: 0 0 10px var(--neon-cyan);
       }
 
       .close-modal {
-        background: #ff3366;
-        border: none;
-        margin-top: 15px;
-        color: white;
-        width: 100%;
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        background: transparent;
+        border: 2px solid var(--neon-cyan);
+        color: var(--neon-cyan);
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 0 15px var(--neon-cyan);
       }
 
       .close-modal:hover {
-        background: #ff6680;
-        box-shadow: 0 0 15px #ff3366;
+        background: var(--neon-red);
+        color: #fff;
+        transform: rotate(90deg);
+        box-shadow: 0 0 25px var(--neon-red);
+        border-color: var(--neon-red);
       }
 
-      .clear-all-btn {
-        background: transparent;
-        border-color: #ff3366;
-        color: #ff6680;
+      .form-group {
+        margin-bottom: 20px;
+        position: relative;
+      }
+
+      .form-group label {
+        display: block;
+        font-family: "Orbitron", sans-serif;
+        color: var(--neon-cyan);
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-shadow: 0 0 10px var(--neon-cyan);
+      }
+
+      .input-container {
+        position: relative;
+      }
+
+      .input-container i {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--neon-cyan);
+        font-size: 1.1rem;
+        text-shadow: 0 0 5px var(--neon-cyan);
+        z-index: 2;
+      }
+
+      .input-container input {
+        width: 100%;
+        padding: 12px 12px 12px 40px;
+        background: rgba(10, 10, 10, 0.8);
+        border: 2px solid var(--neon-cyan);
+        border-radius: 8px;
+        color: #fff;
+        font-size: 0.9rem;
+        font-family: "Roboto", sans-serif;
+        transition: all 0.3s ease;
+        outline: none;
+      }
+
+      .input-container input:focus {
+        border-color: var(--neon-red);
+        background: rgba(10, 10, 10, 0.9);
+        box-shadow: 0 0 15px var(--neon-red);
+      }
+
+      .input-container input::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+      }
+
+      .btn-login {
+        width: 100%;
+        padding: 14px;
+        background: rgba(0, 255, 255, 0.1);
+        border: 2px solid var(--neon-cyan);
+        border-radius: 8px;
+        color: #fff;
+        font-family: "Orbitron", sans-serif;
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        cursor: pointer;
+        transition: all 0.3s ease;
         margin-top: 10px;
+        text-shadow: 0 0 10px var(--neon-cyan);
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 0 20px var(--neon-cyan);
       }
 
-      .clear-all-btn:hover {
-        background: #ff3366;
-        color: #010b12;
+      .btn-login:hover {
+        background: rgba(255, 0, 85, 0.2);
+        box-shadow: 0 0 25px var(--neon-red);
+        border-color: var(--neon-red);
+        transform: translateY(-2px);
       }
 
-      @media (max-width: 650px) {
-        .rex-header {
-          flex-wrap: wrap;
-          justify-content: center;
-          gap: 10px;
-          padding: 1rem;
+      .btn-login:active {
+        transform: translateY(0);
+      }
+
+      .btn-login::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 0, 85, 0.2),
+          transparent
+        );
+        transition: left 0.5s ease;
+      }
+
+      .btn-login:hover::before {
+        left: 100%;
+      }
+
+      .message {
+        margin-top: 15px;
+        padding: 12px;
+        border-radius: 8px;
+        text-align: center;
+        font-family: "Roboto", sans-serif;
+        font-size: 0.9rem;
+        display: none;
+        border: 2px solid;
+      }
+
+      .message.success {
+        display: block;
+        background: rgba(0, 255, 255, 0.1);
+        border-color: var(--neon-cyan);
+        color: var(--neon-cyan);
+        text-shadow: 0 0 5px var(--neon-cyan);
+      }
+
+      .message.error {
+        display: block;
+        background: rgba(255, 0, 85, 0.1);
+        border-color: var(--neon-red);
+        color: var(--neon-red-light);
+        text-shadow: 0 0 5px rgba(255, 0, 85, 0.5);
+      }
+
+      .loading {
+        display: none;
+        text-align: center;
+        margin-top: 15px;
+      }
+
+      .loading-spinner {
+        display: inline-block;
+        width: 25px;
+        height: 25px;
+        border: 2px solid rgba(0, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: var(--neon-cyan);
+        animation: spin 1s ease-in-out infinite;
+        margin-right: 8px;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
         }
-        .logo-area,
-        .title-area,
-        .right-placeholder {
-          flex: auto;
+      }
+
+      footer {
+        background: rgba(10, 10, 10, 0.8);
+        backdrop-filter: blur(10px);
+        padding: 2rem;
+        text-align: center;
+        position: relative;
+        z-index: 20;
+        border-top: 3px solid var(--neon-cyan);
+        box-shadow: 0 -5px 25px var(--neon-cyan);
+      }
+
+      .footer-content {
+        max-width: 1400px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .copyright {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1rem;
+        text-shadow: 0 0 15px var(--neon-cyan);
+        letter-spacing: 1px;
+        text-align: center;
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes swing {
+        0%,
+        100% {
+          transform: translateY(-50%) rotate(-10deg);
+        }
+        50% {
+          transform: translateY(-50%) rotate(10deg);
+        }
+      }
+
+      @media (max-width: 768px) {
+        .hero h1::before,
+        .hero h1::after {
+          display: none;
+        }
+
+        .footer-content {
+          flex-direction: column;
           text-align: center;
+          justify-content: center;
         }
-        .title-area h1 {
-          font-size: 1.8rem;
+
+        .btn-connexion {
+          padding: 1rem 2.5rem;
+          font-size: 1.1rem;
         }
-        .logo-img {
-          max-height: 50px;
-        }
-        .sale-panel {
+
+        .hero {
           padding: 1.5rem;
         }
-        .section-title {
-          font-size: 1.6rem;
+
+        .modal-container {
+          margin: 20px;
+          padding: 20px;
         }
-        .admin-btn {
-          padding: 10px 24px;
-          font-size: 0.9rem;
-          min-width: 160px;
+
+        .logo-text {
+          font-size: 1.2rem;
         }
+
+        .logo img {
+          height: 35px;
+        }
+      }
+
+      .glow {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(
+          circle,
+          rgba(0, 255, 255, 0.15) 0%,
+          rgba(255, 0, 85, 0.05) 50%,
+          transparent 70%
+        );
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 2;
+        filter: blur(50px);
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <div class="rex-header">
-        <div class="logo-area">
-          <img
-            src="assets/logo.png"
-            alt="Rex Dinners Logo"
-            class="logo-img"
-            onerror="
-              this.onerror = null;
-              this.style.display = 'none';
-              this.nextSibling.style.display = 'flex';
-            "
-          />
-          <div class="logo-fallback" style="display: none; font-size: 2.5rem">
-            🍔⚡
-          </div>
+    <div class="neon-particles" id="particles"></div>
+
+    <nav>
+      <div class="nav-container">
+        <div class="logo">
+          <img src="assets/logo.png" alt="Rex's Diner Logo" />
+          <span class="logo-text">REX'S DINER</span>
         </div>
-        <div class="title-area">
-          <h1>LE REX'S DINNERS</h1>
-          <div class="sub-header">✦ VINTAGE DINER ✦</div>
-        </div>
-        <div class="right-placeholder"></div>
+        <ul class="nav-links">
+          <li><a href="index.html">Accueil</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
       </div>
+    </nav>
 
-      <div class="sale-panel">
-        <div class="section-title">🍽️ NOUVELLE VENTE</div>
+    <div class="glow"></div>
 
-        <div class="form-group">
-          <label>👨‍🍳 EMPLOYÉ</label>
-          <select id="employeeSelect">
-            <option value="Sophie">Sophie Martin</option>
-            <option value="Thomas">Thomas Bernard</option>
-            <option value="Julie">Julie Dubois</option>
-            <option value="Nicolas">Nicolas Lefevre</option>
-            <option value="Camille">Camille Rousseau</option>
-          </select>
-        </div>
+    <main>
+      <div class="hero">
+        <h1>REX'S DINER</h1>
+        <p>
+          🍔 Le meilleur du burger dans une ambiance rétro unique 🍟<br />
+          Livraison et à emporter
+        </p>
 
-        <div class="form-group">
-          <label>📋 MENU / PRODUIT</label>
-          <select id="productSelect">
-            <option value="burger_royal">🍔 Burger Royal Deluxe</option>
-            <option value="rex_dinner">🥩 Rex Dinner Steak Frites</option>
-            <option value="rex_salad">🥗 Salad' Rex (vintage)</option>
-            <option value="cheese_cake">🍰 Cheese Cake Flambé</option>
-            <option value="milkshake">🥤 Milkshake Néon Vanille</option>
-            <option value="onion_rings">🧅 Onion Rings Flamboyants</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>🔢 QUANTITÉ (unités)</label>
-          <input type="number" id="quantityInput" value="1" min="1" step="1" />
-        </div>
-
-        <div class="form-group">
-          <label>💰 PRIX UNITAIRE ($)</label>
-          <input type="number" id="unitPriceInput" step="0.01" value="0.00" />
-        </div>
-
-        <button id="addSaleBtn">➕ ENREGISTRER LA VENTE</button>
-        <button id="quickResetForm" class="btn-reset">⟳ RÉINITIALISER</button>
-      </div>
-
-      <div class="admin-button-wrapper">
-        <button id="adminBtn" class="admin-btn">👑 ADMIN</button>
-      </div>
-    </div>
-
-    <div id="toastMessage" class="toast-msg">✅ Vente enregistrée</div>
-
-    <div id="adminModal" class="modal">
-      <div class="modal-content">
-        <h3>📊 ESPACE ADMIN</h3>
-        <div id="adminStats" class="modal-stats">Chargement...</div>
-        <div id="adminSalesList" class="ventes-list-admin">
-          <div style="text-align: center; padding: 20px">Chargement...</div>
-        </div>
-        <button id="clearAllSalesBtn" class="clear-all-btn">
-          🗑️ SUPPRIMER TOUTES LES VENTES
+        <button class="btn-connexion" id="openLoginModal">
+          🍔 Espace Entreprise 🍔
         </button>
-        <button id="closeModalBtn" class="close-modal">FERMER</button>
+      </div>
+    </main>
+
+    <div class="modal-overlay" id="loginModal">
+      <div class="modal-container">
+        <button class="close-modal" id="closeModal">
+          <i class="fas fa-times"></i>
+        </button>
+
+        <h2 class="modal-title">CONNEXION</h2>
+
+        <form id="loginForm">
+          <div class="form-group">
+            <label for="email">Email</label>
+            <div class="input-container">
+              <i class="fas fa-user"></i>
+              <input
+                type="email"
+                id="email"
+                placeholder="client@rex.com"
+                required
+                autocomplete="off"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="password">Mot de passe</label>
+            <div class="input-container">
+              <i class="fas fa-lock"></i>
+              <input
+                type="password"
+                id="password"
+                placeholder="••••••••"
+                required
+                autocomplete="off"
+              />
+            </div>
+          </div>
+
+          <button type="submit" class="btn-login" id="loginBtn">
+            <span id="btnText">SE CONNECTER</span>
+            <div class="loading" id="btnLoading">
+              <div class="loading-spinner"></div>
+              Connexion...
+            </div>
+          </button>
+
+          <div class="message" id="message"></div>
+        </form>
+
+        <div class="copyright" style="margin-top: 20px; font-size: 0.8rem">
+          Accès réservé aux Entreprises
+        </div>
       </div>
     </div>
+
+    <footer>
+      <div class="footer-content">
+        <div class="copyright">© 2026 Rex's Diner - Tous droits réservés.</div>
+      </div>
+    </footer>
 
     <script>
-      const productsCatalog = {
-        burger_royal: { name: "🍔 Burger Royal Deluxe", basePrice: 14.9 },
-        rex_dinner: { name: "🥩 Rex Dinner Steak Frites", basePrice: 19.5 },
-        rex_salad: { name: "🥗 Salad' Rex (vintage)", basePrice: 11.5 },
-        cheese_cake: { name: "🍰 Cheese Cake Flambé", basePrice: 7.9 },
-        milkshake: { name: "🥤 Milkshake Néon Vanille", basePrice: 6.9 },
-        onion_rings: { name: "🧅 Onion Rings Flamboyants", basePrice: 5.9 },
+      const firebaseConfig = {
+        apiKey: "AIzaSyCFUsezCIhkJgwK7PQGF0p_tliS3KFqT5M",
+        authDomain: "rexcmd.firebaseapp.com",
+        projectId: "rexcmd",
+        storageBucket: "rexcmd.firebasestorage.app",
+        messagingSenderId: "223878719133",
+        appId: "1:223878719133:web:40fac8c64eb14bf4f5d674",
       };
 
-      let sales = [];
+      const app = firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
 
-      function loadFromStorage() {
-        const stored = localStorage.getItem("rex_dinners_sales");
-        if (stored) {
-          try {
-            sales = JSON.parse(stored);
-            if (!Array.isArray(sales)) sales = [];
-          } catch (e) {
-            sales = [];
+      // Adresse email admin
+      const ADMIN_EMAIL = "Admin@rex.com";
+
+      const modalOverlay = document.getElementById("loginModal");
+      const openModalBtn = document.getElementById("openLoginModal");
+      const closeModalBtn = document.getElementById("closeModal");
+      const loginForm = document.getElementById("loginForm");
+      const emailInput = document.getElementById("email");
+      const passwordInput = document.getElementById("password");
+      const loginBtn = document.getElementById("loginBtn");
+      const btnText = document.getElementById("btnText");
+      const btnLoading = document.getElementById("btnLoading");
+      const messageDiv = document.getElementById("message");
+
+      function createParticles() {
+        const container = document.getElementById("particles");
+        for (let i = 0; i < 50; i++) {
+          const particle = document.createElement("div");
+          particle.classList.add("particle");
+          const size = Math.random() * 5 + 2;
+          particle.style.width = size + "px";
+          particle.style.height = size + "px";
+          particle.style.left = Math.random() * 100 + "%";
+          particle.style.top = Math.random() * 100 + "%";
+          particle.style.animationDuration = Math.random() * 10 + 5 + "s";
+          particle.style.animationDelay = Math.random() * 5 + "s";
+          particle.style.background =
+            Math.random() > 0.5
+              ? "radial-gradient(circle, var(--neon-cyan), transparent)"
+              : "radial-gradient(circle, var(--neon-red), transparent)";
+          container.appendChild(particle);
+        }
+      }
+      createParticles();
+
+      // Vérification de l'état de connexion
+      auth.onAuthStateChanged((user) => {
+        if (user) {
+          console.log("Utilisateur connecté:", user.email);
+          const userEmail = user.email ? user.email.toLowerCase().trim() : "";
+          const adminEmailLower = ADMIN_EMAIL.toLowerCase().trim();
+
+          if (userEmail === adminEmailLower) {
+            console.log("Admin détecté, redirection vers dashboard.html");
+            window.location.href = "dashboard.html";
+          } else {
+            console.log("Utilisateur standard, redirection vers commande.html");
+            window.location.href = "commande.html";
           }
-        } else {
-          sales = [];
-          saveToStorage();
         }
-      }
+      });
 
-      function saveToStorage() {
-        localStorage.setItem("rex_dinners_sales", JSON.stringify(sales));
-      }
-
-      function generateId() {
-        return Date.now() + "-" + Math.random().toString(36).substr(2, 8);
-      }
-
-      function showToast(message, isError = false) {
-        const toast = document.getElementById("toastMessage");
-        toast.textContent = message;
-        toast.style.backgroundColor = isError ? "#ff3366cc" : "#0ff3d5cc";
-        toast.style.color = "#01161f";
-        toast.style.opacity = "1";
+      openModalBtn.addEventListener("click", function () {
+        modalOverlay.style.display = "flex";
+        document.body.style.overflow = "hidden";
+        emailInput.focus();
         setTimeout(() => {
-          toast.style.opacity = "0";
-        }, 2000);
+          emailInput.value = "";
+          passwordInput.value = "";
+        }, 100);
+      });
+
+      function closeModal() {
+        modalOverlay.style.display = "none";
+        document.body.style.overflow = "auto";
+        messageDiv.style.display = "none";
+        messageDiv.className = "message";
       }
 
-      function addSale(productId, quantity, unitPrice, employee) {
-        if (!productId || !productsCatalog[productId]) {
-          showToast("❌ Produit invalide", true);
-          return false;
+      closeModalBtn.addEventListener("click", closeModal);
+
+      modalOverlay.addEventListener("click", function (e) {
+        if (e.target === modalOverlay) {
+          closeModal();
         }
+      });
 
-        const qty = parseInt(quantity);
-        if (isNaN(qty) || qty <= 0) {
-          showToast("❌ Quantité invalide (minimum 1)", true);
-          return false;
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && modalOverlay.style.display === "flex") {
+          closeModal();
         }
+      });
 
-        let price = parseFloat(unitPrice);
-        if (isNaN(price) || price <= 0) {
-          showToast("❌ Prix unitaire invalide (>0)", true);
-          return false;
-        }
-
-        price = Math.round(price * 100) / 100;
-        const total = Math.round(qty * price * 100) / 100;
-        const product = productsCatalog[productId];
-
-        const newSale = {
-          id: generateId(),
-          productId: productId,
-          productName: product.name,
-          quantity: qty,
-          unitPrice: price,
-          total: total,
-          employee: employee,
-          timestamp: Date.now(),
-        };
-        sales.unshift(newSale);
-        saveToStorage();
-
-        showToast(
-          `✅ ${employee} : ${product.name} x${qty} → ${total.toFixed(2)}€`,
-        );
-        return true;
+      function showMessage(text, type) {
+        messageDiv.textContent = text;
+        messageDiv.className = "message " + type;
       }
 
-      function updateUnitPriceFromProduct() {
-        const select = document.getElementById("productSelect");
-        const selectedVal = select.value;
-        const basePrice = productsCatalog[selectedVal]?.basePrice || 0;
-        const unitPriceInput = document.getElementById("unitPriceInput");
-        unitPriceInput.value = basePrice.toFixed(2);
-      }
-
-      function resetFormFields() {
-        document.getElementById("productSelect").value = "burger_royal";
-        document.getElementById("quantityInput").value = "1";
-        updateUnitPriceFromProduct();
-        showToast("🔄 Champs réinitialisés", false);
-      }
-
-      function handleAddSale() {
-        const employeeSelect = document.getElementById("employeeSelect");
-        const employee = employeeSelect.value;
-
-        const productSelect = document.getElementById("productSelect");
-        const productId = productSelect.value;
-
-        const quantityInput = document.getElementById("quantityInput");
-        const quantity = quantityInput.value;
-
-        let unitPriceInputValue =
-          document.getElementById("unitPriceInput").value;
-        let unitPrice = parseFloat(unitPriceInputValue);
-        if (isNaN(unitPrice)) unitPrice = 0;
-
-        const success = addSale(productId, quantity, unitPrice, employee);
-        if (success) {
-          document.getElementById("quantityInput").value = "1";
-          updateUnitPriceFromProduct();
+      function showLoading(show) {
+        if (show) {
+          btnText.style.display = "none";
+          btnLoading.style.display = "inline-block";
+          loginBtn.disabled = true;
+        } else {
+          btnText.style.display = "inline";
+          btnLoading.style.display = "none";
+          loginBtn.disabled = false;
         }
       }
 
-      function computeStats() {
-        let totalRevenue = 0;
-        let totalSales = sales.length;
-        let totalUnits = 0;
-        for (let sale of sales) {
-          totalRevenue += sale.total;
-          totalUnits += sale.quantity;
-        }
-        totalRevenue = Math.round(totalRevenue * 100) / 100;
-        return { totalRevenue, totalSales, totalUnits };
-      }
+      // Soumission du formulaire de connexion
+      loginForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
 
-      function renderAdminModal() {
-        const stats = computeStats();
-        const statsDiv = document.getElementById("adminStats");
-        if (statsDiv) {
-          statsDiv.innerHTML = `
-                    <span>💰 CA TOTAL : ${stats.totalRevenue.toFixed(2)} €</span>&nbsp;&nbsp;|&nbsp;&nbsp;
-                    <span>🧾 VENTES : ${stats.totalSales}</span>&nbsp;&nbsp;|&nbsp;&nbsp;
-                    <span>📦 UNITÉS : ${stats.totalUnits}</span>
-                `;
-        }
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
 
-        const adminList = document.getElementById("adminSalesList");
-        if (!adminList) return;
-
-        if (sales.length === 0) {
-          adminList.innerHTML = `<div style="text-align: center; padding: 20px; opacity:0.7;">✨ Aucune vente enregistrée ✨</div>`;
+        if (!email || !password) {
+          showMessage("Veuillez remplir tous les champs", "error");
           return;
         }
 
-        let html = "";
-        for (let sale of sales) {
-          const dateObj = new Date(sale.timestamp);
-          const formattedDate = `${dateObj.toLocaleDateString()} ${dateObj.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
-          html += `
-                    <div class="vente-item-admin">
-                        <div><strong>👤 ${sale.employee}</strong> - ${sale.productName}</div>
-                        <div>📦 ${sale.quantity} x ${sale.unitPrice.toFixed(2)}€ = <strong style="color:#0ff3d5;">${sale.total.toFixed(2)}€</strong></div>
-                        <div style="font-size:0.7rem; color:#7fcdff;">🕒 ${formattedDate}</div>
-                    </div>
-                `;
-        }
-        adminList.innerHTML = html;
-      }
+        showLoading(true);
+        showMessage("", "");
 
-      function openAdminModal() {
-        renderAdminModal();
-        document.getElementById("adminModal").style.display = "flex";
-      }
+        try {
+          const userCredential = await auth.signInWithEmailAndPassword(
+            email,
+            password,
+          );
+          const user = userCredential.user;
+          const userEmail = user.email ? user.email.toLowerCase().trim() : "";
+          const adminEmailLower = ADMIN_EMAIL.toLowerCase().trim();
 
-      function closeAdminModal() {
-        document.getElementById("adminModal").style.display = "none";
-      }
-
-      function clearAllSales() {
-        if (
-          confirm(
-            "⚠️ SUPPRESSION TOTALE ⚠️\n\nVoulez-vous vraiment supprimer TOUTES les ventes ?\nCette action est irréversible.",
-          )
-        ) {
-          sales = [];
-          saveToStorage();
-          showToast("🗑️ Toutes les ventes ont été supprimées", false);
-          if (document.getElementById("adminModal").style.display === "flex") {
-            renderAdminModal();
+          if (userEmail === adminEmailLower) {
+            showMessage("Connexion admin réussie ! Redirection...", "success");
+          } else {
+            showMessage("Connexion réussie ! Redirection...", "success");
           }
-        }
-      }
 
-      document.addEventListener("DOMContentLoaded", () => {
-        loadFromStorage();
+          setTimeout(() => {
+            closeModal();
+            if (userEmail === adminEmailLower) {
+              window.location.href = "dashboard.html";
+            } else {
+              window.location.href = "commande.html";
+            }
+          }, 1500);
+        } catch (error) {
+          console.error("Erreur de connexion:", error);
 
-        const productSelect = document.getElementById("productSelect");
-        const addBtn = document.getElementById("addSaleBtn");
-        const resetFormBtn = document.getElementById("quickResetForm");
-        const adminBtn = document.getElementById("adminBtn");
-        const closeModalBtn = document.getElementById("closeModalBtn");
-        const clearAllBtn = document.getElementById("clearAllSalesBtn");
+          let errorMessage = "Email ou mot de passe incorrect";
 
-        productSelect.addEventListener("change", () => {
-          updateUnitPriceFromProduct();
-        });
-
-        addBtn.addEventListener("click", handleAddSale);
-        resetFormBtn.addEventListener("click", resetFormFields);
-
-        adminBtn.addEventListener("click", openAdminModal);
-        closeModalBtn.addEventListener("click", closeAdminModal);
-        clearAllBtn.addEventListener("click", clearAllSales);
-
-        window.addEventListener("click", (e) => {
-          const modal = document.getElementById("adminModal");
-          if (e.target === modal) {
-            closeAdminModal();
+          switch (error.code) {
+            case "auth/user-not-found":
+              errorMessage = "Aucun compte trouvé avec cet email";
+              break;
+            case "auth/wrong-password":
+              errorMessage = "Mot de passe incorrect";
+              break;
+            case "auth/invalid-email":
+              errorMessage = "Format d'email invalide";
+              break;
+            case "auth/user-disabled":
+              errorMessage = "Ce compte a été désactivé";
+              break;
+            case "auth/too-many-requests":
+              errorMessage = "Trop de tentatives. Réessayez plus tard";
+              break;
+            case "auth/network-request-failed":
+              errorMessage = "Erreur réseau. Vérifiez votre connexion";
+              break;
           }
-        });
 
-        updateUnitPriceFromProduct();
+          showMessage(errorMessage, "error");
+          showLoading(false);
+          passwordInput.value = "";
+          passwordInput.focus();
+        }
+      });
 
-        const qtyInput = document.getElementById("quantityInput");
-        const priceInput = document.getElementById("unitPriceInput");
-        const addOnEnter = (e) => {
-          if (e.key === "Enter") handleAddSale();
-        };
-        qtyInput.addEventListener("keypress", addOnEnter);
-        priceInput.addEventListener("keypress", addOnEnter);
-        productSelect.addEventListener("keypress", (e) => {
-          if (e.key === "Enter") handleAddSale();
-        });
+      document.addEventListener("DOMContentLoaded", function () {
+        const hero = document.querySelector(".hero");
+        hero.style.opacity = "0";
+        hero.style.transform = "translateY(30px)";
+        hero.style.transition = "all 0.8s ease";
 
-        const employeeSelect = document.getElementById("employeeSelect");
-        employeeSelect.addEventListener("keypress", (e) => {
-          if (e.key === "Enter") handleAddSale();
-        });
+        setTimeout(() => {
+          hero.style.opacity = "1";
+          hero.style.transform = "translateY(0)";
+        }, 200);
       });
     </script>
   </body>
