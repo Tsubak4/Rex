@@ -1,0 +1,1444 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rex's Diner - Commandes</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800&family=Roboto:wght@300;400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --marine-deep: #0a0a0a;
+        --marine-medium: #1a1a2e;
+        --marine-light: #16213e;
+        --neon-cyan: #00ffff;
+        --neon-red: #ff0055;
+        --neon-red-light: #ff3366;
+        --white: #ffffff;
+        --dark-bg: #0a0a0a;
+      }
+
+      body {
+        font-family: "Roboto", sans-serif;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background: url("assets/rex.png") center/cover fixed no-repeat;
+        color: #fff;
+        position: relative;
+        overflow-x: hidden;
+        border: 3px solid var(--neon-cyan);
+        box-shadow:
+          0 0 20px var(--neon-cyan),
+          inset 0 0 20px var(--neon-cyan);
+      }
+
+      body::after {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.65);
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image:
+          linear-gradient(rgba(0, 255, 255, 0.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 0, 85, 0.05) 1px, transparent 1px);
+        background-size: 40px 40px;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .neon-particles {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .particle {
+        position: absolute;
+        background: radial-gradient(circle, var(--neon-cyan), transparent);
+        border-radius: 50%;
+        animation: floatParticle 8s infinite ease-in-out;
+        opacity: 0.3;
+      }
+
+      @keyframes floatParticle {
+        0%,
+        100% {
+          transform: translateY(0) translateX(0);
+          opacity: 0.1;
+        }
+        50% {
+          transform: translateY(-100px) translateX(50px);
+          opacity: 0.5;
+        }
+      }
+
+      nav {
+        background: rgba(10, 10, 10, 0.85);
+        backdrop-filter: blur(10px);
+        border-bottom: 3px solid var(--neon-cyan);
+        box-shadow: 0 5px 25px var(--neon-cyan);
+        padding: 1rem 2rem;
+        position: fixed;
+        width: 100%;
+        z-index: 100;
+      }
+
+      .nav-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        animation: neonPulse 2s infinite ease-in-out;
+      }
+
+      .logo img {
+        height: 50px;
+        width: auto;
+        filter: drop-shadow(0 0 10px var(--neon-cyan));
+        transition: all 0.3s ease;
+      }
+
+      .logo img:hover {
+        filter: drop-shadow(0 0 20px var(--neon-cyan));
+        transform: scale(1.05);
+      }
+
+      @keyframes neonPulse {
+        0%,
+        100% {
+          filter: drop-shadow(0 0 5px var(--neon-cyan));
+        }
+        50% {
+          filter: drop-shadow(0 0 20px var(--neon-cyan));
+        }
+      }
+
+      .logo-text {
+        font-size: 2rem;
+        font-weight: 800;
+        font-family: "Orbitron", sans-serif;
+        background: linear-gradient(
+          to bottom,
+          var(--neon-cyan) 0%,
+          var(--neon-red) 100%
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: 2px;
+        position: relative;
+      }
+
+      .logo-text::after {
+        content: "";
+        position: absolute;
+        bottom: -5px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--neon-cyan),
+          var(--neon-red),
+          transparent
+        );
+        box-shadow: 0 0 20px var(--neon-cyan);
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 2rem;
+        list-style: none;
+      }
+
+      .nav-links a {
+        color: #fff;
+        text-decoration: none;
+        font-weight: 500;
+        padding: 0.5rem 1rem;
+        border-radius: 30px;
+        transition: all 0.3s ease;
+        position: relative;
+        text-shadow: 0 0 10px var(--neon-cyan);
+      }
+
+      .nav-links a::before {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 2px;
+        background: var(--neon-red);
+        box-shadow: 0 0 20px var(--neon-red);
+        transition: width 0.3s ease;
+      }
+
+      .nav-links a:hover::before {
+        width: 70%;
+      }
+
+      .nav-links a:hover {
+        text-shadow:
+          0 0 20px var(--neon-cyan),
+          0 0 40px var(--neon-red);
+      }
+
+      .logout-btn {
+        background: rgba(255, 0, 85, 0.1) !important;
+        border: 1px solid var(--neon-red) !important;
+        box-shadow: 0 0 15px var(--neon-red) !important;
+        cursor: pointer;
+      }
+
+      .logout-btn:hover {
+        background: rgba(255, 0, 85, 0.2) !important;
+        box-shadow: 0 0 25px var(--neon-red) !important;
+      }
+
+      .logout-btn i {
+        margin-right: 8px;
+      }
+
+      main {
+        flex: 1;
+        padding: 6rem 2rem 4rem;
+        position: relative;
+        z-index: 10;
+        max-width: 1400px;
+        margin: 0 auto;
+        width: 100%;
+      }
+
+      .page-header {
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+
+      .page-header h1 {
+        font-family: "Orbitron", sans-serif;
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(
+          to bottom,
+          var(--neon-cyan) 0%,
+          var(--neon-red) 100%
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 0 30px var(--neon-cyan);
+      }
+
+      .page-header p {
+        color: var(--neon-cyan);
+        font-size: 1rem;
+        text-shadow: 0 0 10px var(--neon-cyan);
+      }
+
+      .company-info {
+        text-align: center;
+        margin-bottom: 2rem;
+        padding: 0.5rem;
+        background: rgba(0, 255, 255, 0.1);
+        border: 1px solid var(--neon-cyan);
+        border-radius: 10px;
+        box-shadow: 0 0 15px var(--neon-cyan);
+        backdrop-filter: blur(5px);
+        font-size: 0.9rem;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .company-info i {
+        color: var(--neon-cyan);
+        margin-right: 8px;
+      }
+
+      /* Menu unique centré */
+      .menu-container {
+        max-width: 550px;
+        margin: 0 auto 2rem auto;
+        background: rgba(10, 10, 10, 0.6);
+        backdrop-filter: blur(10px);
+        border: 2px solid var(--neon-cyan);
+        border-radius: 15px;
+        padding: 1.8rem;
+        box-shadow: 0 0 30px var(--neon-cyan);
+        transition: all 0.3s ease;
+      }
+
+      .menu-container:hover {
+        box-shadow: 0 0 50px var(--neon-red);
+        border-color: var(--neon-red);
+      }
+
+      .menu-selector {
+        margin-bottom: 1.5rem;
+      }
+
+      .menu-selector label {
+        display: block;
+        font-family: "Orbitron", sans-serif;
+        color: var(--neon-cyan);
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-shadow: 0 0 10px var(--neon-cyan);
+      }
+
+      .menu-selector select {
+        width: 100%;
+        padding: 10px;
+        background: rgba(10, 10, 10, 0.8);
+        border: 2px solid var(--neon-cyan);
+        border-radius: 8px;
+        color: #fff;
+        font-size: 0.95rem;
+        font-family: "Orbitron", sans-serif;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        outline: none;
+      }
+
+      .menu-selector select:focus {
+        border-color: var(--neon-red);
+        box-shadow: 0 0 15px var(--neon-red);
+      }
+
+      .menu-selector select option {
+        background: #0a0a0a;
+      }
+
+      .menu-details {
+        text-align: center;
+      }
+
+      .menu-image {
+        margin-bottom: 1rem;
+      }
+
+      .menu-image img {
+        width: 100%;
+        max-width: 250px;
+        height: auto;
+        border-radius: 15px;
+        border: 2px solid var(--neon-cyan);
+        box-shadow: 0 0 20px var(--neon-cyan);
+        transition: all 0.3s ease;
+      }
+
+      .menu-image img:hover {
+        border-color: var(--neon-red);
+        box-shadow: 0 0 30px var(--neon-red);
+      }
+
+      .menu-name {
+        font-family: "Orbitron", sans-serif;
+        font-size: 1.6rem;
+        color: #fff;
+        text-shadow: 0 0 15px var(--neon-cyan);
+        margin-bottom: 0.3rem;
+      }
+
+      .menu-price {
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: var(--neon-cyan);
+        margin-bottom: 0.8rem;
+        text-shadow: 0 0 15px var(--neon-cyan);
+      }
+
+      .menu-description {
+        color: rgba(255, 255, 255, 0.8);
+        margin-bottom: 1.2rem;
+        line-height: 1.5;
+        font-size: 0.9rem;
+      }
+
+      .quantity-selector {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 0.8rem;
+      }
+
+      .quantity-selector label {
+        color: var(--neon-cyan);
+        font-family: "Orbitron", sans-serif;
+        font-size: 1rem;
+      }
+
+      .quantity-selector input {
+        width: 90px;
+        padding: 0.6rem;
+        background: rgba(10, 10, 10, 0.8);
+        border: 2px solid var(--neon-cyan);
+        border-radius: 8px;
+        color: #fff;
+        font-size: 1rem;
+        text-align: center;
+        outline: none;
+      }
+
+      .quantity-selector input:focus {
+        border-color: var(--neon-red);
+        box-shadow: 0 0 15px var(--neon-red);
+      }
+
+      .global-price-container {
+        background: rgba(0, 255, 255, 0.15);
+        border: 2px solid var(--neon-cyan);
+        border-radius: 15px;
+        padding: 1.2rem;
+        margin: 1.5rem auto;
+        text-align: center;
+        box-shadow: 0 0 30px var(--neon-cyan);
+        backdrop-filter: blur(5px);
+        max-width: 450px;
+      }
+
+      .global-price-title {
+        font-family: "Orbitron", sans-serif;
+        color: var(--neon-cyan);
+        font-size: 1rem;
+        margin-bottom: 0.3rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
+
+      .global-price-amount {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #fff;
+        text-shadow: 0 0 30px var(--neon-cyan);
+        line-height: 1.2;
+      }
+
+      .global-price-amount span {
+        color: var(--neon-cyan);
+        font-size: 1.3rem;
+      }
+
+      .delivery-info-container {
+        background: rgba(10, 10, 10, 0.6);
+        backdrop-filter: blur(10px);
+        border: 2px solid var(--neon-cyan);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        box-shadow: 0 0 30px var(--neon-cyan);
+      }
+
+      .delivery-info-title {
+        font-family: "Orbitron", sans-serif;
+        color: var(--neon-cyan);
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+        text-align: center;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
+
+      .delivery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+      }
+
+      .delivery-field {
+        position: relative;
+      }
+
+      .delivery-field label {
+        display: block;
+        font-family: "Orbitron", sans-serif;
+        color: var(--neon-cyan);
+        margin-bottom: 5px;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-shadow: 0 0 10px var(--neon-cyan);
+      }
+
+      .delivery-field input {
+        width: 100%;
+        padding: 10px 10px 10px 35px;
+        background: rgba(10, 10, 10, 0.8);
+        border: 2px solid var(--neon-cyan);
+        border-radius: 8px;
+        color: #fff;
+        font-size: 0.85rem;
+        font-family: "Roboto", sans-serif;
+        transition: all 0.3s ease;
+        outline: none;
+      }
+
+      .delivery-field input:focus {
+        border-color: var(--neon-red);
+        background: rgba(10, 10, 10, 0.9);
+        box-shadow: 0 0 15px var(--neon-red);
+      }
+
+      .delivery-field i {
+        position: absolute;
+        left: 10px;
+        top: 33px;
+        color: var(--neon-cyan);
+        font-size: 1rem;
+        text-shadow: 0 0 5px var(--neon-cyan);
+        z-index: 2;
+      }
+
+      .global-order-container {
+        margin: 1.5rem 0;
+        text-align: center;
+      }
+
+      .btn-commander-global {
+        padding: 1rem 3rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        font-family: "Orbitron", sans-serif;
+        color: #0a0a0a;
+        background: linear-gradient(135deg, var(--neon-cyan), var(--neon-red));
+        border: none;
+        border-radius: 50px;
+        cursor: pointer;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow:
+          0 10px 40px var(--neon-cyan),
+          0 0 0 2px var(--neon-cyan) inset;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        position: relative;
+        width: 100%;
+        max-width: 350px;
+      }
+
+      .btn-commander-global::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.4),
+          transparent
+        );
+        transition: left 0.5s ease;
+      }
+
+      .btn-commander-global:hover {
+        transform: translateY(-5px) scale(1.02);
+        box-shadow:
+          0 20px 50px var(--neon-red),
+          0 0 0 4px #ffffff inset;
+      }
+
+      .btn-commander-global:hover::before {
+        left: 100%;
+      }
+
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.9);
+        backdrop-filter: blur(8px);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+        animation: fadeIn 0.3s ease;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .modal-container {
+        position: relative;
+        z-index: 2001;
+        width: 100%;
+        max-width: 450px;
+        padding: 25px;
+        background: linear-gradient(135deg, #0a0a0a, #1a1a2e);
+        border: 3px solid var(--neon-cyan);
+        border-radius: 15px;
+        box-shadow:
+          0 20px 40px rgba(0, 0, 0, 0.7),
+          0 0 30px var(--neon-cyan);
+        transform: scale(0.9);
+        animation: modalAppear 0.3s ease forwards;
+      }
+
+      @keyframes modalAppear {
+        from {
+          transform: scale(0.9);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+
+      .modal-title {
+        font-family: "Orbitron", sans-serif;
+        font-size: 1.6rem;
+        color: #fff;
+        margin-bottom: 15px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        text-align: center;
+        background: linear-gradient(
+          to bottom,
+          var(--neon-cyan) 0%,
+          var(--neon-red) 100%
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        position: relative;
+      }
+
+      .modal-close {
+        position: absolute;
+        top: 12px;
+        right: 15px;
+        background: transparent;
+        border: 2px solid var(--neon-cyan);
+        color: var(--neon-cyan);
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 0 15px var(--neon-cyan);
+      }
+
+      .modal-close:hover {
+        background: var(--neon-red);
+        color: #0a0a0a;
+        transform: rotate(90deg);
+        box-shadow: 0 0 25px var(--neon-red);
+        border-color: var(--neon-red);
+      }
+
+      .modal-content {
+        margin: 15px 0;
+        color: #fff;
+      }
+
+      .modal-summary {
+        background: rgba(0, 255, 255, 0.1);
+        border: 1px solid var(--neon-cyan);
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .modal-summary-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        padding: 0.2rem 0;
+        border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+      }
+
+      .modal-summary-total {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 0.8rem;
+        padding-top: 0.8rem;
+        border-top: 2px solid var(--neon-cyan);
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: var(--neon-cyan);
+      }
+
+      .modal-delivery {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        padding: 0.8rem;
+        margin-bottom: 1rem;
+        font-size: 0.85rem;
+      }
+
+      .modal-delivery p {
+        margin: 0.4rem 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .modal-delivery i {
+        color: var(--neon-cyan);
+        width: 22px;
+      }
+
+      .modal-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+      }
+
+      .modal-btn {
+        flex: 1;
+        padding: 0.8rem;
+        font-family: "Orbitron", sans-serif;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border-radius: 8px;
+        text-align: center;
+      }
+
+      .modal-btn-confirm {
+        background: rgba(0, 255, 255, 0.1);
+        border: 2px solid var(--neon-cyan);
+        color: #fff;
+        text-shadow: 0 0 10px var(--neon-cyan);
+        box-shadow: 0 0 20px var(--neon-cyan);
+      }
+
+      .modal-btn-confirm:hover {
+        background: rgba(0, 255, 255, 0.2);
+        box-shadow: 0 0 25px var(--neon-cyan);
+        transform: translateY(-2px);
+      }
+
+      .modal-btn-cancel {
+        background: rgba(255, 0, 85, 0.1);
+        border: 2px solid var(--neon-red);
+        color: var(--neon-red-light);
+        text-shadow: 0 0 5px var(--neon-red);
+      }
+
+      .modal-btn-cancel:hover {
+        background: rgba(255, 0, 85, 0.2);
+        box-shadow: 0 0 25px var(--neon-red);
+        transform: translateY(-2px);
+      }
+
+      .message {
+        margin-top: 15px;
+        padding: 10px;
+        border-radius: 8px;
+        text-align: center;
+        font-family: "Roboto", sans-serif;
+        font-size: 0.85rem;
+        display: none;
+        border: 2px solid;
+      }
+
+      .message.success {
+        display: block;
+        background: rgba(0, 255, 255, 0.1);
+        border-color: var(--neon-cyan);
+        color: #fff;
+        text-shadow: 0 0 5px var(--neon-cyan);
+      }
+
+      .message.error {
+        display: block;
+        background: rgba(255, 0, 85, 0.1);
+        border-color: var(--neon-red);
+        color: var(--neon-red-light);
+        text-shadow: 0 0 5px rgba(255, 0, 85, 0.5);
+      }
+
+      footer {
+        background: rgba(10, 10, 10, 0.8);
+        backdrop-filter: blur(10px);
+        padding: 1.5rem;
+        text-align: center;
+        position: relative;
+        z-index: 20;
+        border-top: 3px solid var(--neon-cyan);
+        box-shadow: 0 -5px 25px var(--neon-cyan);
+      }
+
+      .footer-content {
+        max-width: 1400px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .copyright {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.85rem;
+        text-shadow: 0 0 15px var(--neon-cyan);
+        letter-spacing: 1px;
+        text-align: center;
+      }
+
+      .glow {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(
+          circle,
+          rgba(0, 255, 255, 0.15) 0%,
+          rgba(255, 0, 85, 0.05) 50%,
+          transparent 70%
+        );
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 2;
+        filter: blur(50px);
+      }
+
+      @media (max-width: 768px) {
+        .page-header h1 {
+          font-size: 1.8rem;
+        }
+
+        .footer-content {
+          flex-direction: column;
+          text-align: center;
+        }
+
+        .delivery-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .modal-buttons {
+          flex-direction: column;
+        }
+
+        .logo-text {
+          font-size: 1.2rem;
+        }
+
+        .logo img {
+          height: 35px;
+        }
+
+        .menu-container {
+          margin: 0 1rem 1.5rem 1rem;
+          padding: 1.2rem;
+        }
+
+        .menu-name {
+          font-size: 1.3rem;
+        }
+
+        .menu-price {
+          font-size: 1.5rem;
+        }
+
+        .company-info {
+          max-width: 90%;
+          font-size: 0.8rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="neon-particles" id="particles"></div>
+
+    <nav>
+      <div class="nav-container">
+        <div class="logo">
+          <img src="assets/logo.png" alt="Rex's Diner Logo" />
+          <span class="logo-text">REX'S DINER</span>
+        </div>
+        <ul class="nav-links">
+          <li><a href="commande.html">Commandes</a></li>
+          <li>
+            <a href="#" class="logout-btn" id="logoutBtn"
+              ><i class="fas fa-sign-out-alt"></i> Déconnexion</a
+            >
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="glow"></div>
+
+    <main>
+      <div class="page-header">
+        <h1>PASSER UNE COMMANDE</h1>
+        <p>Sélectionnez votre menu préféré</p>
+      </div>
+
+      <div class="company-info" id="companyInfo">
+        <i class="fas fa-store"></i> Chargement...
+      </div>
+
+      <div id="notification" class="message" style="display: none"></div>
+
+      <!-- Menu unique centré -->
+      <div class="menu-container">
+        <div class="menu-selector">
+          <label><i class="fas fa-utensils"></i> Choisissez votre menu</label>
+          <select id="menuSelect">
+            <option value="burger">Burger Deluxe</option>
+            <option value="frites">Menu Frites</option>
+            <option value="milkshake">Milkshake</option>
+            <option value="combo">Combo Rex's</option>
+          </select>
+        </div>
+
+        <div class="menu-details">
+          <div class="menu-image" id="menuImage">
+            <img id="menuImg" src="assets/burger.png" alt="Burger Deluxe" />
+          </div>
+          <div class="menu-name" id="menuName">Burger Deluxe</div>
+          <div class="menu-price" id="menuPrice">15$</div>
+          <div class="menu-description" id="menuDescription">
+            Burger artisanal avec steak angus, cheddar affiné, salade fraîche,
+            tomates, oignons caramélisés et sauce signature de la maison
+          </div>
+          <div class="quantity-selector">
+            <label for="quantity"
+              ><i class="fas fa-shopping-cart"></i> Quantité :</label
+            >
+            <input
+              type="number"
+              id="quantity"
+              min="0"
+              value="0"
+              onchange="updateGlobalPrice()"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="global-price-container">
+        <div class="global-price-title">TOTAL DE LA COMMANDE</div>
+        <div class="global-price-amount" id="globalPrice">0<span>$</span></div>
+      </div>
+
+      <div class="delivery-info-container">
+        <div class="delivery-info-title">
+          <i class="fas fa-user"></i> INFORMATIONS PERSONNE
+        </div>
+        <div class="delivery-grid">
+          <div class="delivery-field">
+            <label for="phone">Numéro à contacter</label>
+            <i class="fas fa-phone"></i>
+            <input
+              type="tel"
+              id="phone"
+              placeholder="06 12 34 56 78"
+              required
+            />
+          </div>
+          <div class="delivery-field">
+            <label for="personName">Nom de la personne</label>
+            <i class="fas fa-user"></i>
+            <input
+              type="text"
+              id="personName"
+              placeholder="Nom complet"
+              required
+            />
+          </div>
+          <div class="delivery-field">
+            <label for="deliveryDate">Date souhaitée</label>
+            <i class="fas fa-calendar"></i>
+            <input type="date" id="deliveryDate" required />
+          </div>
+          <div class="delivery-field">
+            <label for="deliveryTime">Heure souhaitée</label>
+            <i class="fas fa-clock"></i>
+            <input type="time" id="deliveryTime" required />
+          </div>
+        </div>
+      </div>
+
+      <div class="global-order-container">
+        <button class="btn-commander-global" id="globalOrderBtn">
+          <i class="fas fa-shopping-cart"></i> VALIDER LA COMMANDE
+        </button>
+      </div>
+
+      <div class="modal-overlay" id="confirmationModal">
+        <div class="modal-container">
+          <button class="modal-close" id="closeModal">
+            <i class="fas fa-times"></i>
+          </button>
+
+          <h2 class="modal-title">CONFIRMER LA COMMANDE</h2>
+
+          <div class="modal-content">
+            <div class="modal-summary" id="modalSummary"></div>
+
+            <div class="modal-delivery" id="modalDelivery"></div>
+
+            <div class="modal-buttons">
+              <button class="modal-btn modal-btn-cancel" id="cancelOrder">
+                <i class="fas fa-times"></i> ANNULER
+              </button>
+              <button class="modal-btn modal-btn-confirm" id="confirmOrder">
+                <i class="fas fa-check"></i> CONFIRMER
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <div class="footer-content">
+        <div class="copyright">© 2026 Rex's Diner - Tous droits réservés.</div>
+      </div>
+    </footer>
+
+    <script>
+      // Configuration Firebase
+      const firebaseConfig = {
+        apiKey: "AIzaSyCFUsezCIhkJgwK7PQGF0p_tliS3KFqT5M",
+        authDomain: "rexcmd.firebaseapp.com",
+        projectId: "rexcmd",
+        storageBucket: "rexcmd.firebasestorage.app",
+        messagingSenderId: "223878719133",
+        appId: "1:223878719133:web:40fac8c64eb14bf4f5d674",
+      };
+
+      const app = firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
+      const db = firebase.firestore();
+
+      const DISCORD_WEBHOOK_URL =
+        "https://discord.com/api/webhooks/1479216429076316180/2tW0oAV52WwO8IL-V9x9ei9nqP6n4UYUiVKkiAFsYzmN3frc2pjjABd5fl7Vu0a6mDE4";
+
+      const ROLE_ID = "1302571533041926156";
+      const ADMIN_EMAIL = "Admin@rex.com";
+
+      // Base de données des menus
+      const menus = {
+        burger: {
+          name: "Burger Deluxe",
+          price: 15,
+          description:
+            "Burger artisanal avec steak angus, cheddar affiné, salade fraîche, tomates, oignons caramélisés et sauce signature de la maison",
+          image: "assets/burger.png",
+        },
+        frites: {
+          name: "Menu Frites",
+          price: 8,
+          description:
+            "Frites maison coupées fraîchement, double cuisson pour un croustillant parfait, servies avec sauce barbecue ou mayonnaise",
+          image: "assets/frites.png",
+        },
+        milkshake: {
+          name: "Milkshake",
+          price: 7,
+          description:
+            "Milkshake onctueux fait maison, choix entre vanille, chocolat ou fraise, avec chantilly et cerise",
+          image: "assets/milkshake.png",
+        },
+        combo: {
+          name: "Combo Rex's",
+          price: 25,
+          description:
+            "Le combo complet ! Un Burger Deluxe, un Menu Frites et un Milkshake. Le repas parfait pour les gourmands !",
+          image: "assets/combo.png",
+        },
+      };
+
+      const notification = document.getElementById("notification");
+      const companyInfo = document.getElementById("companyInfo");
+      const logoutBtn = document.getElementById("logoutBtn");
+      const globalOrderBtn = document.getElementById("globalOrderBtn");
+      const confirmationModal = document.getElementById("confirmationModal");
+      const closeModal = document.getElementById("closeModal");
+      const cancelOrder = document.getElementById("cancelOrder");
+      const confirmOrder = document.getElementById("confirmOrder");
+      const modalSummary = document.getElementById("modalSummary");
+      const modalDelivery = document.getElementById("modalDelivery");
+
+      const menuSelect = document.getElementById("menuSelect");
+      const menuImg = document.getElementById("menuImg");
+      const menuName = document.getElementById("menuName");
+      const menuPrice = document.getElementById("menuPrice");
+      const menuDescription = document.getElementById("menuDescription");
+      const quantityInput = document.getElementById("quantity");
+
+      let currentOrderData = null;
+
+      function createParticles() {
+        const container = document.getElementById("particles");
+        if (!container) return;
+        for (let i = 0; i < 50; i++) {
+          const particle = document.createElement("div");
+          particle.classList.add("particle");
+          const size = Math.random() * 5 + 2;
+          particle.style.width = size + "px";
+          particle.style.height = size + "px";
+          particle.style.left = Math.random() * 100 + "%";
+          particle.style.top = Math.random() * 100 + "%";
+          particle.style.animationDuration = Math.random() * 10 + 5 + "s";
+          particle.style.animationDelay = Math.random() * 5 + "s";
+          particle.style.background =
+            Math.random() > 0.5
+              ? "radial-gradient(circle, var(--neon-cyan), transparent)"
+              : "radial-gradient(circle, var(--neon-red), transparent)";
+          container.appendChild(particle);
+        }
+      }
+      createParticles();
+
+      // Mise à jour de l'affichage du menu sélectionné
+      function updateMenuDisplay() {
+        const selected = menuSelect.value;
+        const menu = menus[selected];
+        if (menu) {
+          menuName.textContent = menu.name;
+          menuPrice.textContent = `${menu.price}$`;
+          menuDescription.textContent = menu.description;
+          menuImg.src = menu.image;
+          menuImg.alt = menu.name;
+        }
+        updateGlobalPrice();
+      }
+
+      // Calcul du prix total
+      window.updateGlobalPrice = function () {
+        const selected = menuSelect.value;
+        const menu = menus[selected];
+        const quantity = parseInt(quantityInput.value) || 0;
+        const total = menu ? menu.price * quantity : 0;
+        document.getElementById("globalPrice").innerHTML =
+          total + "<span>$</span>";
+      };
+
+      // Écouteur de changement de menu
+      menuSelect.addEventListener("change", updateMenuDisplay);
+
+      // Écouteur de changement de quantité
+      quantityInput.addEventListener("change", function () {
+        if (this.value < 0) this.value = 0;
+        updateGlobalPrice();
+      });
+
+      auth.onAuthStateChanged(async (user) => {
+        if (!user) {
+          window.location.href = "index.html";
+        } else {
+          const userEmail = user.email ? user.email.toLowerCase().trim() : "";
+          const adminEmailLower = ADMIN_EMAIL.toLowerCase().trim();
+
+          if (userEmail === adminEmailLower) {
+            window.location.href = "dashboard.html";
+          } else {
+            await loadCompanyInfo(user);
+            const today = new Date().toISOString().split("T")[0];
+            document.getElementById("deliveryDate").value = today;
+            document.getElementById("deliveryDate").min = today;
+            updateMenuDisplay();
+          }
+        }
+      });
+
+      async function loadCompanyInfo(user) {
+        try {
+          const doc = await db.collection("entreprises").doc(user.uid).get();
+          if (doc.exists) {
+            const data = doc.data();
+            companyInfo.innerHTML = `<i class="fas fa-store"></i> ${data.companyName || user.email}`;
+          } else {
+            companyInfo.innerHTML = `<i class="fas fa-user"></i> ${user.email}`;
+          }
+        } catch (error) {
+          console.error("Erreur chargement infos:", error);
+          companyInfo.innerHTML = `<i class="fas fa-user"></i> ${user.email}`;
+        }
+      }
+
+      function showNotification(message, type) {
+        notification.textContent = message;
+        notification.className = "message " + type;
+        notification.style.display = "block";
+        setTimeout(() => {
+          notification.style.display = "none";
+        }, 3000);
+      }
+
+      function openConfirmationModal() {
+        const user = auth.currentUser;
+        if (!user) {
+          showNotification("Veuillez vous connecter", "error");
+          return;
+        }
+
+        const selected = menuSelect.value;
+        const menu = menus[selected];
+        const quantity = parseInt(quantityInput.value) || 0;
+        const phone = document.getElementById("phone").value.trim();
+        const personName = document.getElementById("personName").value.trim();
+        const deliveryDate = document.getElementById("deliveryDate").value;
+        const deliveryTime = document.getElementById("deliveryTime").value;
+
+        if (quantity === 0) {
+          showNotification("Veuillez sélectionner une quantité", "error");
+          return;
+        }
+
+        if (!phone || !personName || !deliveryDate || !deliveryTime) {
+          showNotification("Veuillez remplir toutes les informations", "error");
+          return;
+        }
+
+        const dateFormatee = new Date(deliveryDate).toLocaleDateString(
+          "fr-FR",
+          {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          },
+        );
+
+        const total = menu.price * quantity;
+
+        modalSummary.innerHTML = `
+          <div class="modal-summary-item">
+            <span>${menu.name} x${quantity}</span>
+            <span>${total}$</span>
+          </div>
+          <div class="modal-summary-total">
+            <span>TOTAL</span>
+            <span>${total}$</span>
+          </div>
+        `;
+
+        modalDelivery.innerHTML = `
+          <p><i class="fas fa-phone"></i> <strong>Téléphone:</strong> ${phone}</p>
+          <p><i class="fas fa-user"></i> <strong>Nom:</strong> ${personName}</p>
+          <p><i class="fas fa-calendar"></i> <strong>Date:</strong> ${dateFormatee}</p>
+          <p><i class="fas fa-clock"></i> <strong>Heure:</strong> ${deliveryTime}</p>
+        `;
+
+        currentOrderData = {
+          menu: menu,
+          quantity: quantity,
+          phone: phone,
+          personName: personName,
+          deliveryDate: deliveryDate,
+          deliveryTime: deliveryTime,
+          total: total,
+        };
+
+        confirmationModal.style.display = "flex";
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeConfirmationModal() {
+        confirmationModal.style.display = "none";
+        document.body.style.overflow = "auto";
+        currentOrderData = null;
+      }
+
+      async function confirmOrderHandler() {
+        if (!currentOrderData) return;
+
+        const user = auth.currentUser;
+        if (!user) {
+          showNotification("Veuillez vous connecter", "error");
+          closeConfirmationModal();
+          return;
+        }
+
+        const {
+          menu,
+          quantity,
+          phone,
+          personName,
+          deliveryDate,
+          deliveryTime,
+          total,
+        } = currentOrderData;
+
+        globalOrderBtn.disabled = true;
+        const originalText = globalOrderBtn.innerHTML;
+        globalOrderBtn.innerHTML =
+          '<i class="fas fa-spinner fa-spin"></i> COMMANDE EN COURS...';
+
+        try {
+          const orderData = {
+            userId: user.uid,
+            userEmail: user.email,
+            phone: phone,
+            personName: personName,
+            deliveryDate: deliveryDate,
+            deliveryTime: deliveryTime,
+            produit: menu.name,
+            prix: menu.price,
+            quantite: quantity,
+            total: total,
+            date: firebase.firestore.FieldValue.serverTimestamp(),
+            status: "En attente",
+          };
+          await db.collection("commandes").add(orderData);
+
+          // Envoi à Discord
+          try {
+            const dateFormatee = new Date(deliveryDate).toLocaleDateString(
+              "fr-FR",
+              {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+              },
+            );
+
+            const embed = {
+              title: "NOUVELLE COMMANDE REX'S DINER",
+              description: `${user.email} a passé une commande`,
+              color: 0xff0055,
+              fields: [
+                {
+                  name: "PRODUIT",
+                  value: `${menu.name} x${quantity}`,
+                  inline: false,
+                },
+                { name: "TOTAL", value: `${total}$`, inline: true },
+                { name: "TELEPHONE", value: phone, inline: true },
+                { name: "NOM", value: personName, inline: true },
+                {
+                  name: "LIVRAISON",
+                  value: `${dateFormatee} à ${deliveryTime}`,
+                  inline: true,
+                },
+                { name: "EMAIL", value: user.email, inline: false },
+              ],
+              footer: { text: "Rex's Diner • Commandes" },
+              timestamp: new Date().toISOString(),
+            };
+
+            await fetch(DISCORD_WEBHOOK_URL, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                content: `NOUVELLE COMMANDE À PRÉPARER`,
+                embeds: [embed],
+              }),
+            });
+          } catch (discordError) {
+            console.error("Erreur envoi Discord:", discordError);
+          }
+
+          showNotification(
+            `Commande de ${quantity} ${menu.name} pour ${total}$ enregistrée !`,
+            "success",
+          );
+
+          quantityInput.value = 0;
+          document.getElementById("phone").value = "";
+          document.getElementById("personName").value = "";
+          document.getElementById("deliveryTime").value = "";
+          updateGlobalPrice();
+          closeConfirmationModal();
+        } catch (error) {
+          console.error("Erreur commande:", error);
+          showNotification("Erreur lors de la commande", "error");
+        } finally {
+          globalOrderBtn.disabled = false;
+          globalOrderBtn.innerHTML = originalText;
+        }
+      }
+
+      globalOrderBtn.addEventListener("click", openConfirmationModal);
+      closeModal.addEventListener("click", closeConfirmationModal);
+      cancelOrder.addEventListener("click", closeConfirmationModal);
+      confirmOrder.addEventListener("click", confirmOrderHandler);
+
+      confirmationModal.addEventListener("click", function (e) {
+        if (e.target === confirmationModal) {
+          closeConfirmationModal();
+        }
+      });
+
+      async function handleLogout() {
+        try {
+          await auth.signOut();
+          window.location.href = "index.html";
+        } catch (error) {
+          console.error("Erreur déconnexion:", error);
+          showNotification("Erreur lors de la déconnexion", "error");
+        }
+      }
+
+      if (logoutBtn) {
+        logoutBtn.addEventListener("click", function (e) {
+          e.preventDefault();
+          handleLogout();
+        });
+      }
+
+      const today = new Date().toISOString().split("T")[0];
+      document.getElementById("deliveryDate").min = today;
+    </script>
+  </body>
+</html>
